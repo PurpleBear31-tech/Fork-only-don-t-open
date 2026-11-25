@@ -1,0 +1,37 @@
+name: Build Amethyst IPA
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Запуск вручную через кнопку в интерфейсе
+
+jobs:
+  build:
+    runs-on: macos-latest  # Только на macOS-машине можно собрать IPA
+    
+    steps:
+      - name: Проверить код
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive  # Обязательно — подтянем все подмодули
+          
+      - name: Собрать проект
+        run: |
+          xcodebuild -scheme Amethyst \
+            -project Amethyst.xcodeproj \
+            -configuration Release \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            clean build
+      
+      - name: Собрать IPA (без подписи)
+        uses: uber/action-xcodebuild@master
+        with:
+          workspace: ""
+          project: Amethyst.xcodeproj
+          scheme: Amethyst
+          configuration: Release
+          export_method: export
+          clean: true
+          codesign_identity: ""
+          provisioning_profile: ""
